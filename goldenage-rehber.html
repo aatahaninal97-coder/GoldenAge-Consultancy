@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldenAge – İçerik Yerleştirme Rehberi</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0A0E14; color:#C8D6E5; font-family:'JetBrains Mono',monospace; }
+
+  .header {
+    background:#0D1117;
+    border-bottom:2px solid #C9A84C;
+    padding:20px 40px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:200;
+  }
+  .header-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:#fff; }
+  .header-title span { color:#C9A84C; }
+  .header-sub { font-size:10px; color:#6B7F96; margin-top:3px; }
+
+  .tabs {
+    display:flex; gap:4px;
+  }
+  .tab {
+    padding:8px 18px; font-size:11px; letter-spacing:0.1em; cursor:pointer;
+    border:1px solid rgba(255,255,255,0.1); color:#6B7F96;
+    transition:all .2s; text-transform:uppercase;
+  }
+  .tab.active { background:#C9A84C; color:#000; border-color:#C9A84C; font-weight:700; }
+
+  .page { display:none; padding:40px; }
+  .page.active { display:block; }
+
+  /* ── ANNOTATED SCREENSHOT ── */
+  .screenshot-wrap {
+    position:relative;
+    display:inline-block;
+    width:100%;
+    margin-bottom:40px;
+  }
+
+  .screenshot-wrap img {
+    width:100%;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.08);
+    display:block;
+  }
+
+  .annotation {
+    position:absolute;
+    border-radius:3px;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .annotation:hover { z-index:50; }
+  .annotation:hover .ann-tooltip { opacity:1; transform:translateY(0); pointer-events:auto; }
+
+  .ann-box {
+    width:100%; height:100%;
+    border:2.5px solid;
+    border-radius:3px;
+    position:relative;
+  }
+
+  .ann-badge {
+    position:absolute;
+    top:-12px; left:8px;
+    padding:2px 8px;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    border-radius:3px;
+    white-space:nowrap;
+  }
+
+  .ann-tooltip {
+    position:absolute;
+    left:calc(100% + 12px);
+    top:0;
+    width:260px;
+    background:#1A2535;
+    border-radius:6px;
+    padding:14px;
+    opacity:0;
+    transform:translateY(6px);
+    transition:all .25s;
+    pointer-events:none;
+    z-index:100;
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  }
+  .ann-tooltip.left {
+    left:auto;
+    right:calc(100% + 12px);
+  }
+  .ann-tooltip h4 {
+    font-family:'Syne',sans-serif;
+    font-size:13px; font-weight:800;
+    color:#fff; margin-bottom:8px;
+  }
+  .ann-tooltip .field {
+    margin-bottom:8px;
+  }
+  .ann-tooltip .field-label {
+    font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+    color:#6B7F96; margin-bottom:3px;
+  }
+  .ann-tooltip .field-val {
+    font-size:11px; line-height:1.6;
+    padding:6px 10px;
+    border-radius:4px;
+    border-left:2px solid;
+  }
+  .ann-tooltip .char-count {
+    font-size:9px; color:#6B7F96; margin-top:2px; text-align:right;
+  }
+
+  /* COLORS */
+  .c1 { border-color:#C9A84C; } .c1 .ann-badge { background:#C9A84C; color:#000; }
+  .c1 .field-val { background:rgba(201,168,76,0.08); border-color:#C9A84C; color:#E8C97A; }
+
+  .c2 { border-color:#4CA8FF; } .c2 .ann-badge { background:#4CA8FF; color:#000; }
+  .c2 .field-val { background:rgba(76,168,255,0.08); border-color:#4CA8FF; color:#7DC4FF; }
+
+  .c3 { border-color:#28CA41; } .c3 .ann-badge { background:#28CA41; color:#000; }
+  .c3 .field-val { background:rgba(40,202,65,0.08); border-color:#28CA41; color:#5ADB6E; }
+
+  .c4 { border-color:#FF8C4C; } .c4 .ann-badge { background:#FF8C4C; color:#000; }
+  .c4 .field-val { background:rgba(255,140,76,0.08); border-color:#FF8C4C; color:#FFA97A; }
+
+  .c5 { border-color:#A04CFF; } .c5 .ann-badge { background:#A04CFF; color:#fff; }
+  .c5 .field-val { background:rgba(160,76,255,0.08); border-color:#A04CFF; color:#C07AFF; }
+
+  .c6 { border-color:#FF4C4C; } .c6 .ann-badge { background:#FF4C4C; color:#fff; }
+  .c6 .field-val { background:rgba(255,76,76,0.08); border-color:#FF4C4C; color:#FF7A7A; }
+
+  .c7 { border-color:#00CBA7; } .c7 .ann-badge { background:#00CBA7; color:#000; }
+  .c7 .field-val { background:rgba(0,203,167,0.08); border-color:#00CBA7; color:#3DDFC5; }
+
+  /* ── COPY TABLE ── */
+  .copy-section { margin-bottom:48px; }
+  .copy-section h2 {
+    font-family:'Syne',sans-serif; font-size:20px; font-weight:800;
+    color:#fff; margin-bottom:20px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .copy-section h2 .badge {
+    padding:4px 12px; border-radius:4px;
+    font-size:11px; font-weight:700; letter-spacing:0.1em;
+  }
+
+  .copy-row {
+    display:grid; grid-template-columns:200px 1fr;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    padding:14px 0; gap:20px; align-items:start;
+  }
+  .copy-row:last-child { border-bottom:none; }
+  .copy-field {
+    font-size:10px; letter-spacing:0.15em; text-transform:uppercase;
+    color:#6B7F96; padding-top:4px;
+  }
+  .copy-val {
+    background:#0D1117;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:6px;
+    padding:12px 16px;
+    font-size:13px;
+    line-height:1.7;
+    color:#E8C97A;
+    position:relative;
+    cursor:pointer;
+    transition:border-color .2s;
+  }
+  .copy-val:hover { border-color:rgba(201,168,76,0.4); }
+  .copy-val .copy-btn {
+    position:absolute; top:8px; right:8px;
+    padding:3px 8px; font-size:9px; letter-spacing:0.1em;
+    background:rgba(201,168,76,0.15); color:#C9A84C;
+    border:1px solid rgba(201,168,76,0.3); border-radius:3px;
+    cursor:pointer; opacity:0; transition:opacity .2s; text-transform:uppercase;
+  }
+  .copy-val:hover .copy-btn { opacity:1; }
+  .copy-val .chars {
+    position:absolute; bottom:6px; right:10px;
+    font-size:9px; color:#6B7F96;
+  }
+
+  .divider {
+    height:1px; background:linear-gradient(90deg, rgba(201,168,76,0.3), transparent);
+    margin:40px 0;
+  }
+
+  .tip {
+    background:rgba(201,168,76,0.05);
+    border:1px solid rgba(201,168,76,0.2);
+    border-radius:6px;
+    padding:14px 18px;
+    font-size:11px;
+    line-height:1.7;
+    color:#C9A84C;
+    margin-bottom:20px;
+  }
+  .tip strong { color:#E8C97A; }
+
+  .img-label {
+    font-size:11px; color:#6B7F96; margin-bottom:8px;
+    letter-spacing:0.1em; text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">GOLDEN<span>AGE</span> – İçerik Yerleştirme Rehberi</div>
+    <div class="header-sub">Her bölümün üzerine gelin → ne yazacağınızı görün · Sayfa 2'de copy-paste metinler</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('visual')">🗺 Görsel Harita</div>
+    <div class="tab" onclick="showPage('copy')">📋 Metinler</div>
+  </div>
+</div>
+
+<!-- PAGE 1: VISUAL -->
+<div class="page active" id="page-visual">
+
+  <div class="tip">
+    💡 <strong>Nasıl kullanılır:</strong> Aşağıdaki ekran görüntülerinde renkli kutucukların üzerine gelin — sağda/solda ne yazmanız gerektiği çıkar. Metinleri kopyalamak için <strong>Sayfa 2 → Metinler</strong> sekmesine geçin.
+  </div>
+
+  <!-- SCREENSHOT 1 -->
+  <div class="img-label">📸 Ekran 1 — Hero Bölümü (Üst Alan)</div>
+  <div class="screenshot-wrap">
+    <img src="/mnt/user-data/uploads/1772614672780_image.png" alt="Site ekran 1">
+
+    <!-- NAV -->
+    <div class="annotation c2" style="top:5.5%;left:0%;width:100%;height:8%;">
+      <div class="ann-box c2">
+        <div class="ann-badge">① Menü</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>① Navigasyon Menüsü</h4>
+        <div class="field">
+          <div class="field-label">Menü Linkleri</div>
+          <div class="field-val c2">ANASAYFA &nbsp;|&nbsp; HAKKIMIZDA &nbsp;|&nbsp; SERVİSLERİMİZ</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Dil Seçeneği</div>
+          <div class="field-val c2">TR / EN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO HEADLINE -->
+    <div class="annotation c1" style="top:14%;left:1%;width:48%;height:16%;">
+      <div class="ann-box c1">
+        <div class="ann-badge">② Ana Başlık</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>② Hero Ana Başlık</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (2 satır)</div>
+          <div class="field-val c1">SALDIRIDAN ÖNCE<br>SAVUNMA İNŞA EDİN.</div>
+          <div class="char-count">✅ Mevcut metin iyi, değiştirme</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO ALT METİN -->
+    <div class="annotation c4" style="top:30%;left:1%;width:48%;height:10%;">
+      <div class="ann-box c4">
+        <div class="ann-badge">③ Alt Metin</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>③ Hero Alt Açıklama</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (max 42 karakter)</div>
+          <div class="field-val c4">Pentest, tehdit istihbaratı,<br>ağ güvenliği. 7/24 yanınızdayız.</div>
+          <div class="char-count">42 karakter</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTON -->
+    <div class="annotation c3" style="top:41%;left:1%;width:25%;height:8%;">
+      <div class="ann-box c3">
+        <div class="ann-badge">④ Buton</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>④ CTA Butonu</h4>
+        <div class="field">
+          <div class="field-label">Buton Metni</div>
+          <div class="field-val c3">ÜCRETSİZ DANIŞMANLIK AL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGO ALANI -->
+    <div class="annotation c5" style="top:14%;left:52%;width:46%;height:38%;">
+      <div class="ann-box c5">
+        <div class="ann-badge">⑤ Logo / Görsel</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑤ Sağ Görsel Alan</h4>
+        <div class="field">
+          <div class="field-label">Şirket Adı (Logo yanı)</div>
+          <div class="field-val c5">GoldenAge<br>Consultancy</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Not</div>
+          <div class="field-val c5">Logo + şirket adı zaten var.<br>Değiştirmene gerek yok.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCREENSHOT 2 -->
+  <div class="img-label" style="margin-top:40px;">📸 Ekran 2 — Orta Bölüm</div>
+  <div class="screenshot-wrap">
+    <img src="/mnt/user-data/uploads/1772614682800_image.png" alt="Site ekran 2">
+
+    <!-- HAKKIMIZDA BAŞLIK -->
+    <div class="annotation c1" style="top:13%;left:50%;width:48%;height:10%;">
+      <div class="ann-box c1">
+        <div class="ann-badge">⑥ Üst Etiket</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑥ Bölüm Etiketi</h4>
+        <div class="field">
+          <div class="field-label">Küçük üst yazı</div>
+          <div class="field-val c1">GoldenAge Danışmanlık</div>
+          <div class="char-count">22 karakter ✅</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HAKKIMIZDA BÜYÜK BAŞLIK -->
+    <div class="annotation c4" style="top:23%;left:50%;width:48%;height:18%;">
+      <div class="ann-box c4">
+        <div class="ann-badge">⑦ Bölüm Başlığı</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑦ Ana Bölüm Başlığı</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz</div>
+          <div class="field-val c4">UZMANLIGI ERİŞİLEBİLİR<br>KILAN SİBER GÜVENLİK<br>FİRMASI</div>
+          <div class="char-count">✅ Mevcut metin iyi</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HAKKIMIZDA PARAGRAF -->
+    <div class="annotation c2" style="top:41%;left:50%;width:48%;height:22%;">
+      <div class="ann-box c2">
+        <div class="ann-badge">⑧ Paragraf</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑧ Açıklama Paragrafı</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (max 42 kar/satır)</div>
+          <div class="field-val c2">Siber tehditler her ölçekteki<br>firmayı hedef alıyor. Soru<br>"başıma gelir mi?" değil,<br>"hazır mıyım?" olmalı.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAHA FAZLASI BUTONU -->
+    <div class="annotation c3" style="top:63%;left:50%;width:20%;height:7%;">
+      <div class="ann-box c3">
+        <div class="ann-badge">⑨ Buton</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑨ Alt Buton</h4>
+        <div class="field">
+          <div class="field-label">Buton metni</div>
+          <div class="field-val c3">DAHA FAZLASI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONLİNE RANDEVU -->
+    <div class="annotation c5" style="top:72%;left:5%;width:90%;height:9%;">
+      <div class="ann-box c5">
+        <div class="ann-badge">⑩ Bölüm Başlığı</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑩ Randevu Bölümü Başlığı</h4>
+        <div class="field">
+          <div class="field-label">Başlık</div>
+          <div class="field-val c5">ONLİNE RANDEVU</div>
+          <div class="char-count">✅ Değiştirme</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVİS KARTLARI -->
+    <div class="annotation c6" style="top:82%;left:5%;width:42%;height:14%;">
+      <div class="ann-box c6">
+        <div class="ann-badge">⑪ Servis Kartı 1</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑪ Servis Kartı – Sol</h4>
+        <div class="field">
+          <div class="field-label">Başlık</div>
+          <div class="field-val c6">IT Infrastructure Audit</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Alt Bilgi</div>
+          <div class="field-val c6">1 sa. &nbsp;|&nbsp; Fiyat: Görüşmeyle</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation c7" style="top:82%;left:51%;width:42%;height:14%;">
+      <div class="ann-box c7">
+        <div class="ann-badge">⑫ Servis Kartı 2</div>
+      </div>
+      <div class="ann-tooltip left">
+        <h4>⑫ Servis Kartı – Sağ</h4>
+        <div class="field">
+          <div class="field-label">Başlık</div>
+          <div class="field-val c7">EndUser Training</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Alt Bilgi</div>
+          <div class="field-val c7">30 dk. &nbsp;|&nbsp; Fiyat: Görüşmeyle</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCREENSHOT 3 -->
+  <div class="img-label" style="margin-top:40px;">📸 Ekran 3 — İletişim Bölümü</div>
+  <div class="screenshot-wrap">
+    <img src="/mnt/user-data/uploads/1772614694449_image.png" alt="Site ekran 3">
+
+    <!-- İLETİŞİM BAŞLIK -->
+    <div class="annotation c1" style="top:10%;left:25%;width:50%;height:8%;">
+      <div class="ann-box c1">
+        <div class="ann-badge">⑬ Sayfa Başlığı</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑬ İletişim Sayfası Başlığı</h4>
+        <div class="field">
+          <div class="field-label">Başlık</div>
+          <div class="field-val c1">İLETİŞİM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALT YAZI -->
+    <div class="annotation c4" style="top:18%;left:25%;width:50%;height:6%;">
+      <div class="ann-box c4">
+        <div class="ann-badge">⑭ Alt Metin</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑭ Form Üstü Metin</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (max 42 karakter)</div>
+          <div class="field-val c4">Bizimle iletişime geçin</div>
+          <div class="char-count">23 karakter ✅</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM ALANLARI -->
+    <div class="annotation c2" style="top:24%;left:25%;width:50%;height:33%;">
+      <div class="ann-box c2">
+        <div class="ann-badge">⑮ Form Alanları</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑮ İletişim Formu</h4>
+        <div class="field">
+          <div class="field-label">Alan 1</div>
+          <div class="field-val c2">Ad Soyad</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Alan 2</div>
+          <div class="field-val c2">E-posta *</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Alan 3</div>
+          <div class="field-val c2">Mesajınız</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Buton</div>
+          <div class="field-val c2">GÖNDER</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFİS ZİYARET -->
+    <div class="annotation c5" style="top:59%;left:15%;width:70%;height:7%;">
+      <div class="ann-box c5">
+        <div class="ann-badge">⑯ Alt Başlık</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑯ Ofis Ziyaret Başlığı</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (max 42 karakter)</div>
+          <div class="field-val c5">Daha iyisi, ofisimizde görüşelim</div>
+          <div class="char-count">33 karakter ✅</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALT YAZI 2 -->
+    <div class="annotation c3" style="top:66%;left:20%;width:60%;height:5%;">
+      <div class="ann-box c3">
+        <div class="ann-badge">⑰ Alt Açıklama</div>
+      </div>
+      <div class="ann-tooltip">
+        <h4>⑰ Alt Açıklama</h4>
+        <div class="field">
+          <div class="field-label">Buraya yaz (max 42 karakter)</div>
+          <div class="field-val c3">İletişim tercihinizi seçin</div>
+          <div class="char-count">26 karakter ✅</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- PAGE 2: COPY -->
+<div class="page" id="page-copy">
+
+  <div class="tip">
+    💡 Aşağıdaki metinleri <strong>tıklayarak</strong> kopyalayın ve GoDaddy builder'da ilgili alana yapıştırın. Tüm metinler <strong>max 42 karakter</strong> kuralına göre kısaltılmıştır.
+  </div>
+
+  <!-- HERO -->
+  <div class="copy-section">
+    <h2><span class="badge" style="background:#C9A84C;color:#000;">① – ④</span> HERO BÖLÜMÜ (İlk Ekran)</h2>
+
+    <div class="copy-row">
+      <div class="copy-field">② Ana Başlık<br><span style="font-size:9px;color:#444;">(2 satır, büyük)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        SALDIRIDAN ÖNCE<br>SAVUNMA İNŞA EDİN.
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">③ Alt Açıklama<br><span style="font-size:9px;color:#444;">(max 42 kar.)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        Pentest, tehdit istihbaratı,<br>ağ güvenliği. 7/24 yanınızdayız.
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">42 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">④ Buton Metni</div>
+      <div class="copy-val" onclick="copyText(this)">
+        ÜCRETSİZ DANIŞMANLIK AL
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">24 karakter</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- HAKKIMIZDA -->
+  <div class="copy-section">
+    <h2><span class="badge" style="background:#FF8C4C;color:#000;">⑥ – ⑨</span> HAKKIMIZDA BÖLÜMÜ</h2>
+
+    <div class="copy-row">
+      <div class="copy-field">⑥ Üst Etiket<br><span style="font-size:9px;color:#444;">(küçük yazı)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        GoldenAge Danışmanlık
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">22 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑦ Bölüm Başlığı</div>
+      <div class="copy-val" onclick="copyText(this)">
+        UZMANLIGI ERİŞİLEBİLİR<br>KILAN SİBER GÜVENLİK<br>FİRMASI
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑧ Paragraf<br><span style="font-size:9px;color:#444;">(42 kar./satır)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        Siber tehditler her ölçekteki firmayı<br>hedef alıyor. Soru "başıma gelir mi?"<br>değil, "hazır mıyım?" olmalı.
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑨ Buton</div>
+      <div class="copy-val" onclick="copyText(this)">
+        DAHA FAZLASI
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ONLİNE RANDEVU -->
+  <div class="copy-section">
+    <h2><span class="badge" style="background:#A04CFF;color:#fff;">⑩ – ⑫</span> ONLİNE RANDEVU BÖLÜMÜ</h2>
+
+    <div class="copy-row">
+      <div class="copy-field">⑩ Bölüm Başlığı</div>
+      <div class="copy-val" onclick="copyText(this)">
+        ONLİNE RANDEVU
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">15 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑪ Kart 1 Başlık</div>
+      <div class="copy-val" onclick="copyText(this)">
+        IT Infrastructure Audit
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">23 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑪ Kart 1 Alt Bilgi</div>
+      <div class="copy-val" onclick="copyText(this)">
+        1 sa. | Fiyat: Görüşmeyle
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">25 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑫ Kart 2 Başlık</div>
+      <div class="copy-val" onclick="copyText(this)">
+        EndUser Security Training
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">25 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑫ Kart 2 Alt Bilgi</div>
+      <div class="copy-val" onclick="copyText(this)">
+        30 dk. | Fiyat: Görüşmeyle
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">27 karakter</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- İLETİŞİM -->
+  <div class="copy-section">
+    <h2><span class="badge" style="background:#C9A84C;color:#000;">⑬ – ⑰</span> İLETİŞİM SAYFASI</h2>
+
+    <div class="copy-row">
+      <div class="copy-field">⑬ Sayfa Başlığı</div>
+      <div class="copy-val" onclick="copyText(this)">
+        İLETİŞİM
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑭ Form Üstü Metin<br><span style="font-size:9px;color:#444;">(max 42 kar.)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        Bizimle iletişime geçin
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">23 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑮ Form Alan 1</div>
+      <div class="copy-val" onclick="copyText(this)">
+        Ad Soyad
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑮ Form Alan 2</div>
+      <div class="copy-val" onclick="copyText(this)">
+        E-posta *
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑮ Form Alan 3</div>
+      <div class="copy-val" onclick="copyText(this)">
+        Mesajınız
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑮ Buton</div>
+      <div class="copy-val" onclick="copyText(this)">
+        GÖNDER
+        <span class="copy-btn">Kopyala</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑯ Alt Başlık<br><span style="font-size:9px;color:#444;">(max 42 kar.)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        Daha iyisi, ofisimizde görüşelim
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">33 karakter</span>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-field">⑰ Alt Açıklama<br><span style="font-size:9px;color:#444;">(max 42 kar.)</span></div>
+      <div class="copy-val" onclick="copyText(this)">
+        İletişim tercihinizi seçin
+        <span class="copy-btn">Kopyala</span>
+        <span class="chars">26 karakter</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function copyText(el) {
+    const text = el.innerText.replace('Kopyala','').replace(/\d+ karakter/,'').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = el.querySelector('.copy-btn');
+      btn.textContent = '✓ Kopyalandı';
+      btn.style.background = 'rgba(40,202,65,0.2)';
+      btn.style.color = '#28CA41';
+      btn.style.borderColor = '#28CA41';
+      btn.style.opacity = '1';
+      setTimeout(() => {
+        btn.textContent = 'Kopyala';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.style.opacity = '';
+      }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
